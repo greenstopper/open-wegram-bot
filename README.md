@@ -1,6 +1,5 @@
 # Open Wegram Bot - OWB
-## 一个让人呼吸顺畅的 Telegram 双向私聊机器人 🤖（零费用）
-### *LivegramBot 不死，战斗不止！*
+## 沈青禾双向机器人 🤖
 
 简体中文 | [English](README_EN.md) 
 
