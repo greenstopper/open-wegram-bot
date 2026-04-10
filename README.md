@@ -11,7 +11,10 @@
 ## ✨ 特色功能
 
 - 🔄 **双向通信** - 轻松接收和回复来自用户的消息
-- 💾 **无需数据库** - 完全无状态设计，零存储成本
+- 👋 **首次欢迎语** - 用户第一次启动机器人时自动发送欢迎语
+- ✏️ **消息编辑同步** - 用户或您编辑消息后，会同步更新到对侧会话
+- 🚫 **用户屏蔽** - 支持按 UID 屏蔽或解除屏蔽特定用户
+- 💾 **轻量状态存储** - Cloudflare 可通过 KV 持久化欢迎语、屏蔽名单和消息映射
 - 🌐 **无需自己的域名** - 使用 Cloudflare Worker 提供的免费域名
 - 🚀 **轻量级部署** - 几分钟内即可完成设置
 - 💰 **零成本运行** - 在 Cloudflare 免费计划范围内使用
@@ -66,7 +69,9 @@
    - 点击 **Environment Variables**
    - 添加 `PREFIX`（例如：`public`）
    - 添加 `SECRET_TOKEN`（必须包含大小写字母和数字，长度至少16位），并标记为**加密**
-9. 点击 **Save and Deploy** 按钮完成部署
+9. 在 **KV Namespace Bindings** 中添加一个名为 `STATE_KV` 的 KV 绑定。
+10. 可选：添加 `WELCOME_MESSAGE` 作为默认欢迎语。
+11. 点击 **Save and Deploy** 按钮完成部署
 
 这种方式的优点是：当您更新 GitHub 仓库时，Cloudflare 会自动重新部署您的 Worker。
 
@@ -108,6 +113,16 @@ Vercel 部署的优点是简单快速，支持自动更新，并且默认提供 
    ```bash
    npx wrangler secret put SECRET_TOKEN
    ```
+6. 创建用于欢迎语、屏蔽名单和消息编辑同步的 KV：
+   ```bash
+   npx wrangler kv namespace create STATE_KV
+   npx wrangler kv namespace create STATE_KV --preview
+   ```
+7. 将返回的 `id` 和 `preview_id` 填入 [wrangler.toml](/D:/codex/code/open-wegram-bot/wrangler.toml) 中的 `STATE_KV` 绑定。
+8. 可选：设置默认欢迎语：
+   ```bash
+   npx wrangler secret put WELCOME_MESSAGE
+   ```
 
 #### 方法四：通过 Cloudflare Dashboard 手动部署
 
@@ -121,6 +136,8 @@ Vercel 部署的优点是简单快速，支持自动更新，并且默认提供 
 6. 在 Worker 设置中添加环境变量：
    - `PREFIX`（例如：`public`）
    - `SECRET_TOKEN`（必须包含大小写字母和数字，长度至少16位）
+7. 在 Worker 设置中添加一个名为 `STATE_KV` 的 KV 绑定，否则欢迎语、屏蔽用户和消息编辑同步只能工作在内存回退模式。
+8. 可选：添加 `WELCOME_MESSAGE` 作为默认欢迎语。
 
 #### 方法五：Deno 一键部署
 
@@ -213,12 +230,27 @@ https://open-wegram-bot.username.workers.dev/public/install/123456789/000000000:
 
 一旦设置完成，任何人给您的 Bot 发送消息，您都会在自己的 Telegram 账号中收到这些消息，并且消息下方会显示发送者的信息。
 
+用户第一次向机器人发送 `/start` 时，机器人会自动发送欢迎语。您可以通过环境变量 `WELCOME_MESSAGE` 设置默认欢迎语，也可以在 Telegram 中用命令动态修改。
+
 ### 回复消息 📤
 
 要回复某个用户的消息：
 1. 在 Telegram 中找到您想回复的转发消息
 2. 直接回复该消息（使用 Telegram 的回复功能）
 3. 您的回复会被自动发送给原始发送者
+
+如果您或对方后续编辑了这条消息，机器人会同步更新另一侧显示的内容。
+
+### 管理命令 🧰
+
+机器人主人可以直接在 Telegram 中向机器人发送以下命令：
+
+- `/setwelcome <内容>`：设置自定义欢迎语
+- `/clearwelcome`：清除自定义欢迎语，恢复为环境变量 `WELCOME_MESSAGE` 的默认值
+- `/block <uid>`：屏蔽指定用户
+- `/unblock <uid>`：解除屏蔽指定用户
+
+如果您是回复某条转发来的消息，也可以直接发送 `/block` 或 `/unblock`，机器人会自动识别目标用户。
 
 ### 卸载 Bot ❌
 
@@ -239,6 +271,7 @@ https://your-worker-url/YOUR_PREFIX/uninstall/BOT_API_TOKEN
 - 在初始设置时选择一个安全且便于记忆的 Secret Token
 - 避免使用简单或常见的前缀名称
 - 不要将敏感信息分享给他人
+- 如果您依赖欢迎语、屏蔽名单和消息编辑同步，请确保 Cloudflare 已正确绑定 `STATE_KV`
 
 ## ⚠️ 使用限制
 

@@ -6,6 +6,9 @@
  */
 
 import {handleRequest} from "../../src/core.js";
+import {createStateStore} from "../../src/state-store.js";
+
+const stateStore = createStateStore({namespace: "netlify"});
 
 export default async (req) => {
     const request = new Request(req.url, {
@@ -16,7 +19,9 @@ export default async (req) => {
 
     const config = {
         prefix: Netlify.env.get("NETLIFY_PREFIX") || "public",
-        secretToken: Netlify.env.get("SECRET_TOKEN") || ""
+        secretToken: Netlify.env.get("SECRET_TOKEN") || "",
+        welcomeMessage: Netlify.env.get("WELCOME_MESSAGE") || "",
+        stateStore
     };
 
     const response = await handleRequest(request, config);

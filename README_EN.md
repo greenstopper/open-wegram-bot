@@ -11,7 +11,10 @@ Users can send messages to you through your bot, and you can reply directly to t
 ## ✨ Features
 
 - 🔄 **Two-Way Communication** - Easily receive and reply to messages from users
-- 💾 **No Database Required** - Completely stateless design, zero storage costs
+- 👋 **First-Run Welcome Message** - Automatically send a welcome message when a user starts the bot for the first time
+- ✏️ **Edited Message Sync** - Keep both sides in sync after either side edits a message
+- 🚫 **User Blocking** - Block or unblock specific users by UID
+- 💾 **Lightweight State Storage** - Persist welcome messages, blocked users, and message mappings with Cloudflare KV
 - 🌐 **No Personal Domain Required** - Use the free domain provided by Cloudflare Worker
 - 🚀 **Lightweight Deployment** - Complete setup within minutes
 - 💰 **Zero Running Cost** - Operates within Cloudflare's free plan limits
@@ -107,6 +110,16 @@ If you're comfortable with command-line tools, you can use the Wrangler CLI for 
    ```bash
    npx wrangler secret put SECRET_TOKEN
    ```
+6. Create and bind the KV namespace used for welcome messages, blocked users, and edited-message sync:
+   ```bash
+   npx wrangler kv namespace create STATE_KV
+   npx wrangler kv namespace create STATE_KV --preview
+   ```
+   Then copy the returned `id` and `preview_id` into [wrangler.toml](/D:/codex/code/open-wegram-bot/wrangler.toml).
+7. Optional: set a default welcome message:
+   ```bash
+   npx wrangler secret put WELCOME_MESSAGE
+   ```
 
 #### Method 4: Manual Deployment via Cloudflare Dashboard
 
@@ -120,6 +133,7 @@ If you prefer not to use GitHub or command-line tools, you can create the Worker
 6. Add environment variables in the Worker settings:
    - `PREFIX` (e.g., `public`)
    - `SECRET_TOKEN` (must contain uppercase and lowercase letters and numbers, at least 16 characters long)
+7. Add a KV binding named `STATE_KV`, otherwise welcome messages, blocked-user settings, and edited-message sync will only work in in-memory fallback mode.
 
 #### Method 5: Deno One-Click Deployment
 
@@ -208,12 +222,27 @@ https://open-wegram-bot.username.workers.dev/public/install/123456789/000000000:
 
 Once set up, any messages sent to your Bot will be forwarded to your Telegram account, with sender information displayed below the message.
 
+When a user sends `/start` for the first time, the bot will automatically send a welcome message. You can set the default welcome message through the `WELCOME_MESSAGE` environment variable, or update it later with Telegram commands.
+
 ### Replying to Messages 📤
 
 To reply to a user's message:
 1. Find the forwarded message you want to reply to in Telegram
 2. Reply directly to that message (using Telegram's reply function)
 3. Your reply will be automatically sent to the original sender
+
+If either side edits the message later, the bot will sync the updated content to the other side.
+
+### Management Commands 🧰
+
+The bot owner can send these commands directly to the bot in Telegram:
+
+- `/setwelcome <text>`: Set a custom welcome message
+- `/clearwelcome`: Clear the custom welcome message and fall back to `WELCOME_MESSAGE`
+- `/block <uid>`: Block a specific user
+- `/unblock <uid>`: Unblock a specific user
+
+If you reply to a forwarded message, you can also send `/block` or `/unblock` without a UID and the bot will detect the target user automatically.
 
 ### Uninstalling the Bot ❌
 
@@ -234,6 +263,7 @@ https://your-worker-url/YOUR_PREFIX/uninstall/BOT_API_TOKEN
 - Choose a secure and memorable Secret Token during initial setup
 - Avoid using simple or common prefix names
 - Do not share sensitive information with others
+- If you rely on welcome messages, blocked-user settings, and edited-message sync, make sure `STATE_KV` is correctly bound in Cloudflare
 
 ## ⚠️ Usage Limitations
 
