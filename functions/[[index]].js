@@ -6,6 +6,9 @@
  */
 
 import {handleRequest} from '../src/core.js';
+import {createStateStore} from '../src/state-store.js';
+
+const stateStore = createStateStore({namespace: 'edgeone'});
 
 export default async function onRequest(context) {
     const req = context.request;
@@ -17,7 +20,9 @@ export default async function onRequest(context) {
 
     const config = {
         prefix: context.env.EDGEONE_PREFIX || 'public',
-        secretToken: context.env.SECRET_TOKEN || ''
+        secretToken: context.env.SECRET_TOKEN || '',
+        welcomeMessage: context.env.WELCOME_MESSAGE || '',
+        stateStore
     };
 
     const response = await handleRequest(request, config);

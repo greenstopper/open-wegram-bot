@@ -6,6 +6,9 @@
  */
 
 import {handleRequest} from '../src/core.js';
+import {createStateStore} from '../src/state-store.js';
+
+const stateStore = createStateStore({namespace: 'vercel'});
 
 export default async function handler(req, res) {
     const request = new Request(`${req.headers['x-forwarded-proto']}://${req.headers.host}${req.url}`, {
@@ -16,7 +19,9 @@ export default async function handler(req, res) {
 
     const config = {
         prefix: process.env.PREFIX || 'public',
-        secretToken: process.env.SECRET_TOKEN || ''
+        secretToken: process.env.SECRET_TOKEN || '',
+        welcomeMessage: process.env.WELCOME_MESSAGE || '',
+        stateStore
     };
 
     const response = await handleRequest(request, config);

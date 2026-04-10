@@ -6,12 +6,18 @@
  */
 
 import {handleRequest} from './core.js';
+import {createStateStore} from './state-store.js';
 
 export default {
     async fetch(request, env, ctx) {
         const config = {
             prefix: env.PREFIX || 'public',
-            secretToken: env.SECRET_TOKEN || ''
+            secretToken: env.SECRET_TOKEN || '',
+            welcomeMessage: env.WELCOME_MESSAGE || '',
+            stateStore: createStateStore({
+                namespace: `cf:${env.PREFIX || 'public'}`,
+                cloudflareKv: env.STATE_KV
+            })
         };
 
         return handleRequest(request, config);
