@@ -16,7 +16,10 @@ Deno.serve(async (req) => {
 
     const config = {
         prefix: Deno.env.get("PREFIX") || "public",
-        secretToken: Deno.env.get("SECRET_TOKEN") || ""
+        secretToken: Deno.env.get("SECRET_TOKEN") || "",
+        blockedTokens: Deno.env.get("BLOCKED_TOKENS") || "",
+        blockedUsers: Deno.env.get("BLOCKED_USERS") || "",
+        blockLinks: Deno.env.get("BLOCK_LINKS") || ""
     };
 
     const response = await handleRequest(request, config);

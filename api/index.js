@@ -16,7 +16,10 @@ export default async function handler(req, res) {
 
     const config = {
         prefix: process.env.PREFIX || 'public',
-        secretToken: process.env.SECRET_TOKEN || ''
+        secretToken: process.env.SECRET_TOKEN || '',
+        blockedTokens: process.env.BLOCKED_TOKENS || '',
+        blockedUsers: process.env.BLOCKED_USERS || '',
+        blockLinks: process.env.BLOCK_LINKS || ''
     };
 
     const response = await handleRequest(request, config);

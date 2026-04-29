@@ -18,6 +18,7 @@ Users can send messages to you through your bot, and you can reply directly to t
 - 🔒 **Secure and Reliable** - Uses official Telegram API and secure tokens
 - 🔌 **Multiple Bot Support** - Register multiple private chat bots with a single deployment
 - 🛠️ **Multiple Deployment Options** - GitHub one-click deploy, Vercel one-click deploy, Wrangler CLI, and Dashboard deployment
+- 🛡️ **Spam Filtering** - Configure keyword blocklists, user blocklists, and link blocking via environment variables; matching messages are silently dropped
 
 ## 🛠️ Prerequisites
 
@@ -173,6 +174,19 @@ Cloudflare allows you to bind your own domain to your Worker, enabling you to ac
 4. Follow the instructions to bind your domain
 
 After binding, you can use addresses like `https://your-domain.com/YOUR_PREFIX/install/...` to register/uninstall bots.
+
+### 3.2 (Optional) Configure Spam Filtering 🛡️
+
+If your bot is being hit by ads, configure any combination of the following environment variables (leave empty to disable). Messages matching any rule are **silently dropped** — the sender still sees a "sent" status, but your account receives nothing.
+
+| Variable | Description | Example |
+|---|---|---|
+| `BLOCKED_TOKENS` | Keyword blocklist, comma-separated, case-insensitive substring match. Checks both message text and photo/video captions | `usdt,buy now,scam,casino` |
+| `BLOCKED_USERS` | Blocked user UIDs, comma-separated | `123456789,987654321` |
+| `BLOCK_LINKS` | Set to `true` to drop any message containing a URL, `t.me/`, or `@username` mention | `true` |
+
+> [!NOTE]
+> Redeploy (or trigger a restart after saving env vars in the dashboard) for the rules to take effect. Filtering only applies to the user→owner direction; your replies are unaffected.
 
 ### 4. Register Your Telegram Bot
 

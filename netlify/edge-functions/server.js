@@ -16,7 +16,10 @@ export default async (req) => {
 
     const config = {
         prefix: Netlify.env.get("NETLIFY_PREFIX") || "public",
-        secretToken: Netlify.env.get("SECRET_TOKEN") || ""
+        secretToken: Netlify.env.get("SECRET_TOKEN") || "",
+        blockedTokens: Netlify.env.get("BLOCKED_TOKENS") || "",
+        blockedUsers: Netlify.env.get("BLOCKED_USERS") || "",
+        blockLinks: Netlify.env.get("BLOCK_LINKS") || ""
     };
 
     const response = await handleRequest(request, config);
