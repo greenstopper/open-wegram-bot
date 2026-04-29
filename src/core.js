@@ -22,6 +22,34 @@ export async function postToTelegramApi(token, method, body) {
     });
 }
 
+const LINK_PATTERN = /https?:\/\/|t\.me\/|@[A-Za-z][\w]{4,}/i;
+
+function parseList(raw) {
+    if (!raw) return [];
+    return raw.split(',').map(s => s.trim()).filter(Boolean);
+}
+
+export function isSpam(message, filters) {
+    const senderUid = message.chat && message.chat.id ? message.chat.id.toString() : '';
+    if (senderUid && filters.blockedUsers.includes(senderUid)) {
+        return true;
+    }
+
+    const text = `${message.text || ''}\n${message.caption || ''}`;
+    if (!text.trim()) return false;
+
+    const lower = text.toLowerCase();
+    for (const kw of filters.blockedKeywords) {
+        if (kw && lower.includes(kw)) return true;
+    }
+
+    if (filters.blockLinks && LINK_PATTERN.test(text)) {
+        return true;
+    }
+
+    return false;
+}
+
 export async function handleInstall(request, ownerUid, botToken, prefix, secretToken) {
     if (!validateSecretToken(secretToken)) {
         return jsonResponse({
@@ -74,7 +102,7 @@ export async function handleUninstall(botToken, secretToken) {
     }
 }
 
-export async function handleWebhook(request, ownerUid, botToken, secretToken) {
+export async function handleWebhook(request, ownerUid, botToken, secretToken, filters) {
     if (secretToken !== request.headers.get('X-Telegram-Bot-Api-Secret-Token')) {
         return new Response('Unauthorized', {status: 401});
     }
@@ -102,6 +130,10 @@ export async function handleWebhook(request, ownerUid, botToken, secretToken) {
                 });
             }
 
+            return new Response('OK');
+        }
+
+        if (filters && message.chat.id.toString() !== ownerUid && isSpam(message, filters)) {
             return new Response('OK');
         }
 
@@ -147,6 +179,12 @@ export async function handleWebhook(request, ownerUid, botToken, secretToken) {
 export async function handleRequest(request, config) {
     const {prefix, secretToken} = config;
 
+    const filters = {
+        blockedKeywords: parseList(config.blockedTokens).map(s => s.toLowerCase()),
+        blockedUsers: parseList(config.blockedUsers),
+        blockLinks: config.blockLinks === true || config.blockLinks === 'true' || config.blockLinks === '1'
+    };
+
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -165,7 +203,7 @@ export async function handleRequest(request, config) {
     }
 
     if (match = path.match(WEBHOOK_PATTERN)) {
-        return handleWebhook(request, match[1], match[2], secretToken);
+        return handleWebhook(request, match[1], match[2], secretToken, filters);
     }
 
     return new Response('Not Found', {status: 404});

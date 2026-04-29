@@ -17,7 +17,10 @@ export default async function onRequest(context) {
 
     const config = {
         prefix: context.env.EDGEONE_PREFIX || 'public',
-        secretToken: context.env.SECRET_TOKEN || ''
+        secretToken: context.env.SECRET_TOKEN || '',
+        blockedTokens: context.env.BLOCKED_TOKENS || '',
+        blockedUsers: context.env.BLOCKED_USERS || '',
+        blockLinks: context.env.BLOCK_LINKS || ''
     };
 
     const response = await handleRequest(request, config);
